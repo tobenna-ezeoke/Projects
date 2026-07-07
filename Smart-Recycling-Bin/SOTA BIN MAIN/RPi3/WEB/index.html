@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Bin Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+    }
+    .mode-switch {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .mode-switch button {
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .mode-switch button:hover {
+      background-color: #2980b9;
+    }
+    .card {
+      background-color: white;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 22%;
+      box-sizing: border-box;
+      color: #333;
+    }
+    .card h2 {
+      font-size: 1.8rem;
+    }
+    .link {
+      background-color: #3498db;
+      color: white;
+      text-decoration: none;
+      font-size: 1.2rem;
+      margin: 10px 0;
+      padding: 8px 16px;
+      border-radius: 5px;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .link:hover {
+      color: #fff;
+      background-color: #1d6fa5;
+    }
+    .card-container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .card-container .card {
+      width: 22%;
+    }
+    .image-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .image-container img {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    @media (max-width: 768px) {
+      .card-container .card {
+        width: 100%;
+        margin: 10px 0;
+      }
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="mode-switch">
+      <button id="modeToggle" onclick="toggleMode()">Switch to Manager Mode</button>
+    </div>
+    
+    <div class="image-container">
+      <img src="icon.png" alt="Smart Bin Icon" />
+    </div>
+
+    <h1 id="welcomeMessage">Welcome Team Sotta</h1>
+
+    <div class="card-container">
+      <div class="card">
+        <h2>Landfill Bin Status</h2>
+        <p>Track the current status of each bin in real-time.</p>
+        <a href="landfill_bin.html" class="link">View Bin details</a>
+      </div>
+      <div class="card">
+        <h2>Paper Bin Status</h2>
+        <p>Track the current status of each bin in real-time.</p>
+        <a href="Paper_bin.html" class="link">View Bin details</a>
+      </div>
+      <div class="card">
+        <h2>Plastic/Metal Bin Status</h2>
+        <p>Track the current status of each bin in real-time.</p>
+        <a href="plastic_bin.html" class="link">View Bin details</a>
+      </div>
+      <div class="card">
+        <h2>Compost Bin Status</h2>
+        <p>Track the current status of each bin in real-time.</p>
+        <a href="compost_bin.html" class="link">View Bin details</a>
+      </div>
+      <div class="card">
+        <h2>Waste Classification</h2>
+        <p>View classification results for each item sorted.</p>
+        <a href="classification.html" class="link">View Waste Classification</a>
+      </div>
+      <div class="card">
+        <h2>Chart and Analytics</h2>
+        <p>View analytics for sorted items and bins.</p>
+        <a href="chart.html" class="link">View Analytics</a>
+      </div>
+      <div class="card hidden" id="managerCard">
+        <h2>Manager Actions & Live Bin Details</h2>
+        <p>Monitor and manage system actions.</p>
+        <a href="bin-details.html" class="link">View Bin details</a>
+        <h3>Live Bin Details</h3>
+        <iframe src="last_bin.html" width="100%" height="200px" style="border: none;"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleMode() {
+      const managerCard = document.getElementById('managerCard');
+      const modeToggle = document.getElementById('modeToggle');
+      const welcomeMessage = document.getElementById('welcomeMessage');
+      
+      if (managerCard.classList.contains('hidden')) {
+        managerCard.classList.remove('hidden');
+        document.body.style.backgroundColor = '#1d2731';
+        modeToggle.textContent = 'Switch to User Mode';
+        welcomeMessage.textContent = 'Welcome Manager';
+      } else {
+        managerCard.classList.add('hidden');
+        document.body.style.backgroundColor = '#f4f4f4';
+        modeToggle.textContent = 'Switch to Manager Mode';
+        welcomeMessage.textContent = 'Welcome Team Sotta';
+      }
+    }
+  </script>
+</body>
+</html>

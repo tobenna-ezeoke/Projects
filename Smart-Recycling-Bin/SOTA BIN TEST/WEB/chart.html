@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waste Classification Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .card {
+      background-color: white;
+      padding: 20px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    h2 {
+      color: #333;
+    }
+    .chart-container {
+      max-width: 400px;
+      max-height: 300px;
+      margin: 0 auto;
+    }
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Waste Classification Dashboard</h1>
+
+    <div class="card">
+      <h2>Which Bin Has the Most Garbage?</h2>
+      <div class="chart-container">
+        <canvas id="binCountChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Amount of Each Type of Garbage per Bin</h2>
+      <div class="chart-container">
+        <canvas id="binTypeChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Most Common Type of Garbage</h2>
+      <div class="chart-container">
+        <canvas id="commonGarbageChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAd2YZ1pMSyqcAgtrHhWE2SBEGjVeowGDI",
+      authDomain: "sotta-bin.firebaseapp.com",
+      databaseURL: "https://sotta-bin-default-rtdb.firebaseio.com",
+      projectId: "sotta-bin",
+      storageBucket: "sotta-bin.firebasestorage.app",
+      messagingSenderId: "401646305464",
+      appId: "1:401646305464:web:048b50771558d64d16344d",
+      measurementId: "G-EF174BFWHR"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Reference to classification data
+    const classificationRef = ref(db, "classification_data");
+
+    onValue(classificationRef, (snapshot) => {
+      const classificationData = snapshot.val();
+      if (!classificationData) return;
+
+      let binCounts = {};
+      let binTypeCounts = {};
+      let garbageTypeCounts = {};
+
+      for (let key in classificationData) {
+        if (classificationData.hasOwnProperty(key)) {
+          const { bin, item } = classificationData[key];
+
+          binCounts[bin] = (binCounts[bin] || 0) + 1;
+
+          if (!binTypeCounts[bin]) binTypeCounts[bin] = {};
+          binTypeCounts[bin][item] = (binTypeCounts[bin][item] || 0) + 1;
+
+          garbageTypeCounts[item] = (garbageTypeCounts[item] || 0) + 1;
+        }
+      }
+
+      updateBinCountChart(binCounts);
+      updateBinTypeChart(binTypeCounts);
+      updateCommonGarbageChart(garbageTypeCounts);
+    });
+
+    let binCountChart, binTypeChart, commonGarbageChart;
+
+    function updateBinCountChart(data) {
+      if (binCountChart) binCountChart.destroy();
+      binCountChart = new Chart(document.getElementById("binCountChart"), {
+        type: "bar",
+        data: {
+          labels: Object.keys(data),
+          datasets: [{
+            label: "Total Items in Each Bin",
+            data: Object.values(data),
+            backgroundColor: "blue"
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    function updateBinTypeChart(data) {
+      if (binTypeChart) binTypeChart.destroy();
+      let bins = Object.keys(data);
+      let garbageTypes = [...new Set(Object.values(data).flatMap(Object.keys))];
+
+      let datasets = garbageTypes.map(type => ({
+        label: type,
+        data: bins.map(bin => data[bin][type] || 0),
+        backgroundColor: getRandomColor()
+      }));
+
+      binTypeChart = new Chart(document.getElementById("binTypeChart"), {
+        type: "bar",
+        data: {
+          labels: bins,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "top" }
+          },
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true }
+          }
+        }
+      });
+    }
+
+    function updateCommonGarbageChart(data) {
+      if (commonGarbageChart) commonGarbageChart.destroy();
+      commonGarbageChart = new Chart(document.getElementById("commonGarbageChart"), {
+        type: "pie",
+        data: {
+          labels: Object.keys(data),
+          datasets: [{
+            data: Object.values(data),
+            backgroundColor: Object.keys(data).map(() => getRandomColor())
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    function getRandomColor() {
+      return `hsl(${Math.random() * 360}, 70%, 50%)`;
+    }
+  </script>
+</body>
+</html>

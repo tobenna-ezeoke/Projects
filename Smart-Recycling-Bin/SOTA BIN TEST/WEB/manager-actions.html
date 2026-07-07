@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager Actions</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .card {
+      background-color: white;
+      padding: 20px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Manager Actions</h1>
+
+    <div class="card">
+      <h2>Manager Actions Data</h2>
+      <div id="managerActionsData">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK for ES Modules -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAd2YZ1pMSyqcAgtrHhWE2SBEGjVeowGDI",
+      authDomain: "sotta-bin.firebaseapp.com",
+      databaseURL: "https://sotta-bin-default-rtdb.firebaseio.com",
+      projectId: "sotta-bin",
+      storageBucket: "sotta-bin.firebasestorage.app",
+      messagingSenderId: "401646305464",
+      appId: "1:401646305464:web:048b50771558d64d16344d",
+      measurementId: "G-EF174BFWHR"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const managerActionsRef = ref(db, "manager_actions");
+    const managerActionsDataElement = document.getElementById("managerActionsData");
+
+    onValue(managerActionsRef, (snapshot) => {
+      const managerActions = snapshot.val();
+      if (managerActions) {
+        let actionsHTML = '';
+        for (let key in managerActions) {
+          if (managerActions.hasOwnProperty(key)) {
+            actionsHTML += `
+              <div>
+                <p><strong>Action: </strong>${managerActions[key].action}</p>
+                <p><strong>Bin: </strong>${managerActions[key].bin}</p>
+                <p><strong>Timestamp: </strong>${managerActions[key].timestamp}</p>
+                <hr />
+              </div>
+            `;
+          }
+        }
+        managerActionsDataElement.innerHTML = actionsHTML;
+      } else {
+        managerActionsDataElement.innerHTML = "No manager actions available.";
+      }
+    });
+  </script>
+</body>
+</html>

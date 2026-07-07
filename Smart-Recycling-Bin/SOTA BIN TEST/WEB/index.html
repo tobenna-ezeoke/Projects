@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Bin Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+    }
+    .card {
+      background-color: white;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 22%; /* Set a specific width for each card */
+    }
+    .card h2 {
+      color: #333;
+      font-size: 1.8rem;
+    }
+    .bin-status {
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .full { color: red; }
+    .not-full { color: green; }
+    .link, .button {
+      color: white;
+      text-decoration: none;
+      font-size: 1.2rem;
+      margin: 10px 0;
+      padding: 8px 16px;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+      text-align: center;
+      cursor: pointer;
+    }
+    .link {
+      background-color: #3498db;
+    }
+    .link:hover {
+      background-color: #2980b9;
+    }
+    .button {
+      background-color: #e74c3c;
+      border: none;
+    }
+    .button:hover {
+      background-color: #c0392b;
+    }
+    .image-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .image-container img {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .card-container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .card-container .card {
+      width: 22%; /* Adjusted width for 4 cards */
+    }
+    @media (max-width: 768px) {
+      .card-container .card {
+        width: 100%;
+        margin: 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="image-container">
+      <img src="icon.png" alt="Smart Bin Icon" />
+    </div>
+
+    <h1>Welcome to the Smart Bin Dashboard</h1>
+
+    <!-- Card Container for All Cards -->
+    <div class="card-container">
+
+      <!-- Waste Classification Card -->
+      <div class="card">
+        <h2>Waste Classification</h2>
+        <p>View the classification results for each item sorted by the bin.</p>
+        <a href="classification.html" class="link">View Waste Classification</a>
+      </div>
+
+      <!-- Chart and Analytics Card -->
+      <div class="card">
+        <h2>Chart and Analytics</h2>
+        <p>View the chart and analytics for each item sorted by the bin and also the bins.</p>
+        <a href="classification.html" class="link">View Analytics</a>
+      </div>
+
+      <!-- Manager Actions Card -->
+      <div class="card">
+        <h2>Manager Actions</h2>
+        <p>Monitor and manage system actions, including resets.</p>
+        <a href="manager-actions.html" class="link">View Manager Actions</a>
+        <button class="button" onclick="resetBin()">Reset</button>
+      </div>
+
+      <!-- Bin Status Card -->
+      <div class="card">
+        <h2>Bin Status</h2>
+        <p>Track the current status of each bin in real-time.</p>
+        <a href="bin-details.html" class="link">View Bin details</a>
+        <h3>Live Bin Details</h3>
+        <iframe src="test2.html" width="100%" height="200px" style="border: none;"></iframe>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAd2YZ1pMSyqcAgtrHhWE2SBEGjVeowGDI",
+      authDomain: "sotta-bin.firebaseapp.com",
+      databaseURL: "https://sotta-bin-default-rtdb.firebaseio.com",
+      projectId: "sotta-bin",
+      storageBucket: "sotta-bin.firebasestorage.app",
+      messagingSenderId: "401646305464",
+      appId: "1:401646305464:web:048b50771558d64d16344d",
+      measurementId: "G-EF174BFWHR"
+    };
+
+    // Initialize Firebase
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const binStatusRef = ref(db, "bin_status");
+    const binStatusDataElement = document.getElementById("binStatusData");
+
+    onValue(binStatusRef, (snapshot) => {
+      const binStatusData = snapshot.val();
+      console.log("Data from Firebase:", binStatusData); // Check the data fetched
+
+      if (binStatusData) {
+        const lastKey = Object.keys(binStatusData).pop(); // Get the last key
+        const lastBin = binStatusData[lastKey]; // Get the last element
+
+        console.log("Last bin data:", lastBin); // Check the last bin data
+
+        binStatusDataElement.innerHTML = `
+          <div>
+            <p><strong>Bin ${lastBin.bin}</strong></p>
+            <p>Status: <span style="font-weight: bold; color: ${lastBin.status === 'Full' ? 'red' : 'green'}">${lastBin.status}</span></p>
+            <p>Timestamp: ${lastBin.timestamp}</p>
+            <hr />
+          </div>
+        `;
+      } else {
+        binStatusDataElement.innerHTML = "No bin status available.";
+      }
+    });
+
+    // Function to reset bin (or trigger actions)
+    function resetBin() {
+      alert("Resetting bin...");
+    }
+  </script>
+</body>
+</html>
+

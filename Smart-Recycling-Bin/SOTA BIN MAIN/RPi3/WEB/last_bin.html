@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bin Status</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .bin-status {
+      background-color: white;
+      padding: 20px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .bin-status.full {
+      background-color: #ffcccc;
+    }
+    .bin-status.empty {
+      background-color: #ccffcc;
+    }
+    .reset-button {
+      background-color: #f44336;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .reset-button:hover {
+      background-color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="binStatusData">
+      <!-- Bin status will be dynamically inserted here -->
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue, remove, push, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAd2YZ1pMSyqcAgtrHhWE2SBEGjVeowGDI",
+      authDomain: "sotta-bin.firebaseapp.com",
+      databaseURL: "https://sotta-bin-default-rtdb.firebaseio.com",
+      projectId: "sotta-bin",
+      storageBucket: "sotta-bin.firebasestorage.app",
+      messagingSenderId: "401646305464",
+      appId: "1:401646305464:web:048b50771558d64d16344d",
+      measurementId: "G-EF174BFWHR"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Define bins
+    const bins = ["Paper bin", "Plastic bin", "Landfill bin", "Compost bin"];
+    const binStatusContainer = document.getElementById("binStatusData");
+
+    bins.forEach(binName => {
+      const binRef = ref(db, binName);
+
+      onValue(binRef, (snapshot) => {
+        const binData = snapshot.val();
+        let binStatusElement = document.getElementById(`status-${binName.replace(/\s+/g, '-')}`);
+
+        if (!binStatusElement) {
+          binStatusElement = document.createElement("div");
+          binStatusElement.classList.add("bin-status");
+          binStatusElement.id = `status-${binName.replace(/\s+/g, '-')}`;
+          binStatusContainer.appendChild(binStatusElement);
+        }
+
+        if (binData) {
+          const latestBin = Object.values(binData).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+          const binStatus = latestBin.status || "No data";
+          const binTimestamp = latestBin.timestamp || "N/A";
+
+          if (binStatus === "Bin Full") {
+            alert(`${binName} is full!`);
+          }
+
+          binStatusElement.className = `bin-status ${binStatus === "Bin Full" ? "full" : "empty"}`;
+          binStatusElement.innerHTML = `
+            <h3>${binName}</h3>
+            <p>Status: <span style="color: ${binStatus === 'Bin Full' ? 'red' : 'green'}">${binStatus}</span></p>
+            <p>Timestamp: ${binTimestamp}</p>
+            <button class="reset-button" onclick="resetBin('${binName}')">Reset Bin</button>
+            <hr />
+          `;
+        } else {
+          binStatusElement.className = "bin-status";
+          binStatusElement.innerHTML = `
+            <h3>${binName}</h3>
+            <p>No data available.</p>
+            <hr />
+          `;
+        }
+      });
+    });
+
+    // Reset bin function
+    window.resetBin = function(binName) {
+      const binRef = ref(db, binName);
+      const managerActionsRef = ref(db, "manager_actions");
+      const timestamp = new Date().toISOString();
+
+      remove(binRef)
+        .then(() => {
+          alert(`${binName} has been reset.`);
+          const newActionRef = push(managerActionsRef);
+          set(newActionRef, {
+            bin: binName,
+            timestamp: timestamp,
+            action: "reset"
+          });
+        })
+        .catch((error) => {
+          alert(`Failed to reset ${binName}: ${error.message}`);
+        });
+    }
+  </script>
+</body>
+</html>
