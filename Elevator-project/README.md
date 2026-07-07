@@ -1,4 +1,4 @@
-# 🚀 Distributed Elevator Control System
+#  Distributed Elevator Control System
 
 A distributed elevator control system developed in **C++** for **SYSC 3303 – Real-Time Concurrent Systems** at Carleton University.
 
